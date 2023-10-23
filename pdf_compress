@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+usage() { echo "Usage: $0 [-s <screen|ebook|prepress|default>] input_file output_file" 1>&2; exit 1; }
+
+while getopts ":s:" o; do
+    case "${o}" in
+        s)
+            s=${OPTARG}
+            case "${s}" in
+                screen|ebook|prepress|default) ;;
+                *) usage;;
+            esac
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
+if [ -z "${s}" ]; then
+    s="default"
+fi
+
+if [ $# -ne 2 ]; then
+    usage;
+fi
+
+input_file="$1"
+output_file="$2"
+
+gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/${s} -dNOPAUSE -dQUIET -dBATCH -sOutputFile="${output_file}" "${input_file}"
