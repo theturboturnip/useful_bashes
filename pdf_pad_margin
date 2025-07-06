@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+
+# Pads a PDF out by an equal number of PDF-points (72/inch) on all sides
+
+usage() { echo "Usage: $0 [-m <pts>] input_file output_file" 1>&2; exit 1; }
+
+while getopts ":m:" o; do
+    case "${o}" in
+        m)
+            m=${OPTARG}
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
+if [ -z "${m}" ]; then
+    m="72"
+fi
+
+if [ $# -ne 2 ]; then
+    usage;
+fi
+
+input_file="$1"
+output_file="$2"
+
+start_width=$(pdfinfo "$input_file" | perl -n -e'/Page size:\s+(\d+) x \d+ pts/ && print $1')
+start_height=$(pdfinfo "$input_file" | perl -n -e'/Page size:\s+\d+ x (\d+) pts/ && print $1')
+
+case "$m" in
+    ''|*[!0-9]*) echo "-m '$m' must be a number of points, 72/inch"; exit 1 ;;
+    *) ;;
+esac
+case "$start_width" in
+    ''|*[!0-9]*) echo "Failed to extract width from PDF"; exit 1 ;;
+    *) ;;
+esac
+case "$start_height" in
+    ''|*[!0-9]*) echo "Failed to extract height from PDF"; exit 1 ;;
+    *) ;;
+esac
+
+end_width=$(($start_width + $m + $m))
+end_height=$(($start_height + $m + $m))
+
+# https://stackoverflow.com/a/54050990
+# https://superuser.com/a/905279
+gs -q -sDEVICE=pdfwrite -dBATCH -dNOPAUSE -sOutputFile="$output_file" \
+  -dDEVICEWIDTHPOINTS=$end_width -dDEVICEHEIGHTPOINTS=$end_height -dFIXEDMEDIA \
+  -c "<< /BeginPage {$m $m translate} >> setpagedevice" \
+  -f "$input_file"
