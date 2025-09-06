@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
 # Pads a PDF out by an equal number of PDF-points (72/inch) on all sides
+#
+# Requires pdfutils and gs commands, which can be acquired on Ubuntu/Debian
+# via `sudo apt-get install poppler-utils ghostscript`
 
 usage() { echo "Usage: $0 [-m <pts>] input_file output_file" 1>&2; exit 1; }
 
