@@ -27,8 +27,10 @@ fi
 input_file="$1"
 output_file="$2"
 
-start_width=$(pdfinfo "$input_file" | perl -n -e'/Page size:\s+(\d+) x \d+ pts/ && print $1')
-start_height=$(pdfinfo "$input_file" | perl -n -e'/Page size:\s+\d+ x (\d+) pts/ && print $1')
+start_width=$(pdfinfo "$input_file" | perl -n -e'/Page size:\s+(\d+)(\.\d+)? x \d+(\.\d+)? pts/ && print $1')
+start_width_dec=$(pdfinfo "$input_file" | perl -n -e'/Page size:\s+(\d+)(\.\d+)? x \d+(\.\d+)? pts/ && print $2')
+start_height=$(pdfinfo "$input_file" | perl -n -e'/Page size:\s+\d+(\.\d+)? x (\d+)(\.\d+)? pts/ && print $2')
+start_height_dec=$(pdfinfo "$input_file" | perl -n -e'/Page size:\s+\d+(\.\d+)? x (\d+)(\.\d+)? pts/ && print $3')
 
 case "$m" in
     ''|*[!0-9]*) echo "-m '$m' must be a number of points, 72/inch"; exit 1 ;;
@@ -49,6 +51,6 @@ end_height=$(($start_height + $m + $m))
 # https://stackoverflow.com/a/54050990
 # https://superuser.com/a/905279
 gs -q -sDEVICE=pdfwrite -dBATCH -dNOPAUSE -sOutputFile="$output_file" \
-  -dDEVICEWIDTHPOINTS=$end_width -dDEVICEHEIGHTPOINTS=$end_height -dFIXEDMEDIA \
+  -dDEVICEWIDTHPOINTS=$end_width$start_width_dec -dDEVICEHEIGHTPOINTS=$end_height$start_height_dec -dFIXEDMEDIA \
   -c "<< /BeginPage {$m $m translate} >> setpagedevice" \
   -f "$input_file"
