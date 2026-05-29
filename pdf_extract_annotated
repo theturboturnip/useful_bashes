@@ -1,0 +1,1 @@
+exec uv run "$(dirname $0)/python-pdf-utils/extract_annotated.py" "$@"
