@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+# Uses ghostscript to downgrade a PDF's standard to 1.x (default 1.4)
+#
+# Inspired by https://gist.github.com/davidaknowles/ba5a2b69f255b748782bd38fe25e4c41
+#
+# Requires the gs command, which can be acquired on Ubuntu/Debian
+# via `sudo apt-get install ghostscript`
+
+usage() { echo "Usage: $0 [-s <4,5,6,7>] input_file output_file" 1>&2; exit 1; }
+
+while getopts ":s:" o; do
+    case "${o}" in
+        s)
+            s=${OPTARG}
+            case "${s}" in
+                4|5|6|7) ;;
+                *) usage;;
+            esac
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
+if [ -z "${s}" ]; then
+    s="4"
+fi
+
+if [ $# -ne 2 ]; then
+    usage;
+fi
+
+input_file="$1"
+output_file="$2"
+
+gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.${s} -dNOPAUSE -dQUIET -dBATCH -sOutputFile="${output_file}" "${input_file}"
